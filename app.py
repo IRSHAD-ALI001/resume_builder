@@ -4,12 +4,16 @@ import base64
 import google.generativeai as genai
 import time
 from PIL import Image
+from dotenv import load_dotenv
+import os
 
-# --- Configure Gemini AI ---
-genai.configure(api_key="AIzaSyABE9b1DOwmH8pCPyEkUAkUc3CTL9qfVbI") 
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+genai.configure(api_key=GEMINI_API_KEY) 
 model = genai.GenerativeModel('gemini-pro')
 
-# --- AI Functions ---
+
 def generate_ai_summary(experience, tone="professional"):
     prompt = f"""
     Create a {tone} 3-sentence professional summary for a resume based on:
@@ -35,7 +39,7 @@ def suggest_skills(job_description=""):
     response = model.generate_content(prompt)
     return response.text
 
-# --- PDF Generator ---
+
 def generate_pdf(data, template):
     pdf = FPDF()
     pdf.add_page()
@@ -48,45 +52,45 @@ def generate_pdf(data, template):
     else:
         primary_color = (46, 139, 87)  # SeaGreen
     
-    # Header
+
     pdf.set_fill_color(*primary_color)
     pdf.set_text_color(255, 255, 255)
-    pdf.set_font("Arial", 'B', 16)
+    pdf.set_font("Arial", "B", 16)
     pdf.cell(0, 10, data["name"], ln=1, fill=True)
     
-    # Contact Info
+    
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", size=12)
     pdf.cell(0, 10, f"📧 {data['email']} | 📞 {data['phone']}", ln=1)
     
-    # Sections
+    
     sections = [
         ("PROFESSIONAL SUMMARY", data["summary"]),
         ("WORK EXPERIENCE", "\n".join(
-            [f"🏢 {job['role']} at {job['company']}\n- {job['description']}" 
-             for job in data["jobs"]]
+            f"🏢 {job['role']} at {job['company']}\n- {job['description']}" 
+             for job in data["jobs"]
         )),
         ("EDUCATION", f"🎓 {data['education']}"),
         ("SKILLS", f"🛠️ {data['skills']}")
     ]
     
-    pdf.set_font("Arial", 'B', 14)
+    pdf.set_font("Arial", "B", 14)
     for title, content in sections:
         pdf.cell(0, 10, title, ln=1)
         pdf.set_font("Arial", size=12)
         pdf.multi_cell(0, 8, content)
         pdf.ln(2)
     
-    return pdf.output(dest='S').encode('latin1')
+    return pdf.output(dest="S").encode("latin1")
 
-# --- UI Config ---
+
 st.set_page_config(
     page_title="AI Resume Builder Pro",
     page_icon="🤖",
     layout="wide",
 )
 
-# --- Custom CSS ---
+
 st.markdown("""
 <style>
     .stApp {
